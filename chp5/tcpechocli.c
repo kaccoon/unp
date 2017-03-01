@@ -14,7 +14,7 @@ void str_cli(int sockfd)
 		if (read(sockfd, recvbuf, sizeof(recvbuf)) == 0) {
 			fprintf(stderr, "server terminated prematurely");
 		}
-		puts(recvbuf);
+		fputs(recvbuf, stdout);
 	}
 }
 

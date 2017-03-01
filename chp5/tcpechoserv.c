@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	bzero(&sa, sizeof(sa));
 	bzero(&cli_sa, sizeof(cli_sa));
 	sa.sin_family = AF_INET;
-	sa.sin_port = 4924;
+	sa.sin_port = htons(4924);
 	sa.sin_addr.s_addr = INADDR_ANY;
 
 	/* bind address and port */
