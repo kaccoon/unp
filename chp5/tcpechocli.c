@@ -9,11 +9,13 @@
 void str_cli(int sockfd)
 {
 	char sendbuf[LINE_MAX], recvbuf[LINE_MAX];
+	int read_bytes;
 	while (fgets(sendbuf, sizeof(sendbuf), stdin)) {
 		write(sockfd, sendbuf, strlen(sendbuf));
-		if (read(sockfd, recvbuf, sizeof(recvbuf)) == 0) {
+		if ((read_bytes = read(sockfd, recvbuf, sizeof(recvbuf)-1)) == 0) {
 			fprintf(stderr, "server terminated prematurely");
 		}
+		recvbuf[read_bytes] = '\0';
 		fputs(recvbuf, stdout);
 	}
 }
