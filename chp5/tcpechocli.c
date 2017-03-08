@@ -3,12 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
 void str_cli(int sockfd)
 {
-	char sendbuf[LINE_MAX], recvbuf[LINE_MAX];
+	char sendbuf[1024], recvbuf[1024];
 	int read_bytes;
 	while (fgets(sendbuf, sizeof(sendbuf), stdin)) {
 		write(sockfd, sendbuf, strlen(sendbuf));
@@ -23,6 +26,8 @@ void str_cli(int sockfd)
 int main(int argc, char* argv[]) 
 {
 	int connfd;
+	int fds[5];
+	int i;
 	struct sockaddr_in sa;
 	char buf[1024];
 	ssize_t bytes_read, bytes_echo;
@@ -42,16 +47,18 @@ int main(int argc, char* argv[])
 	sa.sin_port = htons(atoi(argv[2]));
 
 	/* Create socket */
-	connfd = socket(AF_INET, SOCK_STREAM, 0);
+	for (i=0; i<5; i++) {
+		fds[i] = socket(AF_INET, SOCK_STREAM, 0);
 
-	/* Connect to server */
-	if (connect(connfd, (struct sockaddr*)&sa, sizeof(sa)) < 0) {
-		perror(strerror(errno));
-		close(connfd);
-		exit(1);
+			/* Connect to server */
+			if (connect(fds[i], (struct sockaddr*)&sa, sizeof(sa)) < 0) {
+				perror(strerror(errno));
+				close(fds[i]);
+				exit(1);
+			}
 	}
 
-	str_cli(connfd);
-	close(connfd);
-	return 0;
+	str_cli(fds[0]);
+	//close(connfd);
+	exit(0);
 }

@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 
 /* handle SIG_CHILD */
@@ -14,8 +16,11 @@ void sig_child(int signo)
 	pid_t pid;
 	int stat;
 	
-	pid = wait(&stat);
-	printf("Child %d terminated\n", pid);
+	while ((pid = waitpid(-1, &stat, WNOHANG)) > 0) {
+		printf("Child %d terminated\n", pid);
+	}
+
+	sleep(3);
 	
 	return;
 }
@@ -23,11 +28,11 @@ void sig_child(int signo)
 /* Read string from socket and write back */
 void str_echo (int sockfd)
 {
-	char buf[LINE_MAX];
+	char buf[1024];
 	ssize_t bytes_read;
 
 again:
-	while ((bytes_read = read(sockfd, buf, LINE_MAX)) > 0) {
+	while ((bytes_read = read(sockfd, buf, 1024)) > 0) {
 		printf("bytes_read = %d\n", bytes_read);
 		write(sockfd, buf, bytes_read);
 	}
