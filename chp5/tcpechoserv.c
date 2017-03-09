@@ -33,7 +33,8 @@ void str_echo (int sockfd)
 
 again:
 	while ((bytes_read = read(sockfd, buf, 1024)) > 0) {
-		printf("bytes_read = %d\n", bytes_read);
+		buf[bytes_read] = '\0';
+		printf("bytes_read = %d; str = %s\n", bytes_read, buf);
 		write(sockfd, buf, bytes_read);
 	}
 
