@@ -11,6 +11,7 @@
 void str_cli(int fd)
 {
 	int bytes, ready_num;
+	int write_flag = 1;
 	char sendbuf[1024], recvbuf[1024];
 
 	fd_set read_set;
@@ -18,15 +19,18 @@ void str_cli(int fd)
 	while(1) {
 		FD_ZERO(&read_set);
 		FD_SET(fd, &read_set);
-		FD_SET(fileno(stdin), &read_set);
+		if (write_flag)
+			FD_SET(fileno(stdin), &read_set);
 
 		select(fd+1, &read_set, NULL, NULL, NULL);
 
 		if (FD_ISSET(fileno(stdin), &read_set)) {
-			
-			if (!fgets(sendbuf, sizeof(sendbuf), stdin))
-				return;
-			write(fd, sendbuf, strlen(sendbuf));
+			if (!fgets(sendbuf, sizeof(sendbuf), stdin)) {
+				shutdown(fd, SHUT_WR);
+				write_flag = 0;
+			} else {
+				write(fd, sendbuf, strlen(sendbuf));
+			}
 		}
 
 		if (FD_ISSET(fd, &read_set)) {
@@ -35,8 +39,12 @@ void str_cli(int fd)
 				recvbuf[bytes >= sizeof(recvbuf) ? sizeof(recvbuf) - 1 : bytes] = '\0';
 				printf("%s", recvbuf);
 			} else if (bytes == 0) {
-				fprintf(stderr, "server terminated prematurely");
-				return;
+				if (write_flag == 0) {
+					return;
+				} else {
+					fprintf(stderr, "server terminated prematurely");
+					return;
+				}
 			}
 		}
 	}
